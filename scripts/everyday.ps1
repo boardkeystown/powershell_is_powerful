@@ -41,6 +41,15 @@ function files {
     }
 }
 
+function add-path {
+    param($newPath)
+    if (($env:PATH -Split ';') -NotContains $newPath) {
+      $env:PATH += ";$newPath"
+    }
+  }
+
+
+
 # yay *nix !!!
 
 
