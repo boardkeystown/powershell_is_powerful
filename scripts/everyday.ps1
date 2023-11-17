@@ -15,20 +15,19 @@ function pwdc {
         $file_path
     )
     if (-not $file_path) {
-        ((Get-Location).Path).Replace("`n", "") | clip.exe
-    }
-    else {
+        ((Get-Location).Path) | Set-Clipboard
+    } else {
         $joined_path = (Resolve-Path $file_path -ErrorAction SilentlyContinue)
         # path does not exists?
         if (($null -eq $joined_path)) {
-            $joined_path = $($file_path).Replace(".\", "")
+            $joined_path = $($file_path).Replace(".\","")
             $joined_path = (Join-Path (Get-Location).Path "$file_path")
         }
-        $joined_path = $("$joined_path").Replace("`n", "")
+        $joined_path=$("$joined_path")
         Write-Host -f Green "CLIP <-" $joined_path
-        $joined_path | clip.exe
+        $joined_path | Set-Clipboard
     }
-}
+  }
 
 # open file explorer
 # ---
