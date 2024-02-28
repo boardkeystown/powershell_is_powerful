@@ -12,10 +12,16 @@ function c { Clear-Host }
 # or just join text to working directory
 function pwdc {
     param (
+        [switch]$s,
+        [switch]$c,
         $file_path
     )
     if (-not $file_path) {
-        ((Get-Location).Path) | Set-Clipboard
+        if ($s) {
+            ((Get-Location).Path).Replace("\","\\") | Set-Clipboard
+        } else {
+            ((Get-Location).Path) | Set-Clipboard
+        }
     } else {
         $joined_path = (Resolve-Path $file_path -ErrorAction SilentlyContinue)
         # path does not exists?
@@ -24,8 +30,17 @@ function pwdc {
             $joined_path = (Join-Path (Get-Location).Path "$file_path")
         }
         $joined_path=$("$joined_path")
-        Write-Host -f Green "CLIP <-" $joined_path
-        $joined_path | Set-Clipboard
+        if ($s) {
+              $joined_path.Replace("\","\\") | Set-Clipboard
+              Write-Host -f Green "CLIP <-" $joined_path.Replace("\","\\") 
+        } elseif ($c) {
+              $joined_path.Replace("\","/") | Set-Clipboard
+              Write-Host -f Green "CLIP <-" $joined_path.Replace("\","/") 
+        }
+        else {
+          $joined_path | Set-Clipboard
+          Write-Host -f Green "CLIP <-" $joined_path
+        }
     }
   }
 
@@ -54,21 +69,23 @@ function add-path {
 
 
 function lrt() {
-    if (!$args) {
-        Get-ChildItem | Sort-Object LastWriteTime
-    }
-    else {
+if (!$args) {
+    Get-ChildItem | Sort-Object LastWriteTime
+    } else {
         if ($args[0] -eq "-n") {
-            Get-ChildItem | Sort-Object LastAccessTime | Select-Object -ExpandProperty Name
-        }
-        elseif ($args[0] -eq "-h") {
-            Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name = 'Size'; Expression = { "{0:N2} MB" -f ($_.Length / 1MB) } }
-        }
-        elseif ($args[0] -eq "-hk") {
-            Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name = 'Size'; Expression = { "{0:N2} KB" -f ($_.Length / 1KB) } }
+        Get-ChildItem | Sort-Object LastAccessTime | Select-Object -ExpandProperty Name
+        } elseif ($args[0] -eq "-h") {
+        # Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name='Size'; Expression={"{0:N2} KB" -f ($_.Length / 1KB)}}
+        Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name='Size'; Expression={"{0:N2} MB" -f ($_.Length / 1MB)}}
+        } elseif ($args[0] -eq "-hk") {
+        # Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name='Size'; Expression={"{0:N2} KB" -f ($_.Length / 1KB)}}
+        Get-ChildItem -Force | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime, @{Name='Size'; Expression={"{0:N2} KB" -f ($_.Length / 1KB)}}
+        } 
+        elseif ($args[0] -eq "-a") {
+        Get-ChildItem -Force | Select-Object Mode, LastWriteTime, Length, Name | Sort-Object LastWriteTime
         } 
         else {
-            Get-ChildItem $args | Sort-Object LastWriteTime
+        Get-ChildItem $args | Sort-Object LastWriteTime
         }
     } 
 }
@@ -144,3 +161,12 @@ function rmrfv {
         }
     }
 }
+
+
+#   what the dog do     | debian/ubuntu   | msy23 pacman
+#  update package       | apt update      | pacman -Sy
+#  upgrade all packages | apt upgrade     | pacman -Su
+#  install package      | apt isntall pkg | pacman -S pkg
+#  remove a package     | apt remove pkg  | pacman -R pkg
+#  search for a package | apt serach term | pacman -Ss term
+#  list all installed   | dpkg -l         | pacman -Q
